@@ -2,58 +2,35 @@
 pipeline {
     agent any
 
-    parameters {
-        choice(
-            name: 'DEPLOY_ENV',
-            choices: ['Test', 'Demo'],
-            description: 'Choose the deployment environment'
-        )
-    }
-
-    environment {
-        APP_NAME = 'jenkins-website-demo'
-    }
-
     stages {
-        stage('Build') {
+        stage('Build Website') {
             steps {
-                echo "Building ${env.APP_NAME}"
-                echo "Selected environment: ${params.DEPLOY_ENV}"
-
+                echo 'Building website...'
                 bat 'if not exist build mkdir build'
-
                 writeFile file: 'build/index.html',
-                    text: '<html><body><h1>Hello from Jenkins!</h1><p>Deployment successful.</p></body></html>'
+                    text: '<html><body><h1>Hello from Jenkins!</h1><p>Deployed using Jenkins and Docker!</p></body></html>'
             }
         }
 
-        stage('Test') {
+        stage('Test Website') {
             steps {
                 bat 'findstr /C:"Hello from Jenkins!" build\\index.html'
             }
         }
 
-        stage('Deploy') {
+        stage('Build Docker Image') {
             steps {
-                bat 'if not exist deployed-site mkdir deployed-site'
-                bat 'copy /Y build\\index.html deployed-site\\index.html'
-
-                echo "Deployment to ${params.DEPLOY_ENV} completed"
+                bat 'docker build -t jenkins-website:v2 -f Dockerfile .'
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'Website and Docker image built successfully!'
         }
-
         failure {
             echo 'Pipeline failed. Check Console Output.'
-        }
-
-        always {
-            echo "Final build status: ${currentBuild.currentResult}"
         }
     }
 }
