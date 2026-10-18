@@ -1,28 +1,59 @@
-// Learning automatic builds
 
 pipeline {
     agent any
 
+    parameters {
+        choice(
+            name: 'DEPLOY_ENV',
+            choices: ['Test', 'Demo'],
+            description: 'Choose the deployment environment'
+        )
+    }
+
+    environment {
+        APP_NAME = 'jenkins-website-demo'
+    }
+
     stages {
         stage('Build') {
             steps {
-                echo 'Building website'
-                writeFile file: 'index.html',
-                    text: '<html><body><h1>Hello from Jenkins!</h1></body></html>'
+                echo "Building ${env.APP_NAME}"
+                echo "Selected environment: ${params.DEPLOY_ENV}"
+
+                bat 'if not exist build mkdir build'
+
+                writeFile file: 'build/index.html',
+                    text: '<html><body><h1>Hello from Jenkins!</h1><p>Deployment successful.</p></body></html>'
             }
         }
 
         stage('Test') {
             steps {
-                bat 'findstr /C:"Hello from Jenkins!" index.html'
+                bat 'findstr /C:"Hello from Jenkins!" build\\index.html'
             }
         }
 
         stage('Deploy') {
             steps {
                 bat 'if not exist deployed-site mkdir deployed-site'
-                bat 'copy /Y index.html deployed-site\\index.html'
+                bat 'copy /Y build\\index.html deployed-site\\index.html'
+
+                echo "Deployment to ${params.DEPLOY_ENV} completed"
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed. Check Console Output.'
+        }
+
+        always {
+            echo "Final build status: ${currentBuild.currentResult}"
         }
     }
 }
