@@ -18,9 +18,11 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                bat 'docker build -t jenkins-website:v2 -f Dockerfile .'
+       stage('Build Docker Image') {
+    steps {
+        bat 'wsl -d Ubuntu -- docker build -t jenkins-website:v2 -f Dockerfile .'
+    }
+}
             }
         }
     }
