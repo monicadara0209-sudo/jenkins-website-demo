@@ -1,4 +1,4 @@
-#Learning automatic builds
+// Learning automatic builds
 
 pipeline {
     agent any
